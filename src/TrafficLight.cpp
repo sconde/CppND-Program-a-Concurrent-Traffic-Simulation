@@ -15,6 +15,11 @@ T MessageQueue<T>::receive()
 
   std::unique_lock<std::mutex> own_lock(_mutex);
   _condition.wait(own_lock, [this](){ return !_msgs.empty(); } );
+
+  auto msg = std::move( _msgs.back() );
+  _msgs.pop_back();
+  return msg;
+
 }
 
 template <typename T>
@@ -38,6 +43,7 @@ void TrafficLight::waitForGreen()
     // Once it receives TrafficLightPhase::green, the method returns.
 
   while ( true ){
+    std::this_thread::sleep_for( std::chrono::milliseconds(1) );
     auto current_phase = _lightPhases.receive();
     while (current_phase == TrafficLightPhase::green ) return;
   }
